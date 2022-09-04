@@ -1,0 +1,261 @@
+type Comments {
+  created_at: DateTime
+  id: ID!
+  post_id: ID
+  text: String
+  username: String
+}
+
+type Posts {
+  body: String
+  created_at: DateTime
+  id: ID!
+  image: String
+  subreddit_id: ID
+  title: String
+  username: String
+  subreddit: [Subreddits]
+    @materializer(
+      query: "getSubredditsListById"
+      arguments: [{ name: "id", field: "subreddit_id" }]
+    )
+  votes: [Votes]
+    @materializer(
+      query: "getVotesListByPostId"
+      arguments: [{ name: "id", field: "id" }]
+    )
+
+  comments: [Comments]
+    @materializer(
+      query: "getCommentsListByPostId"
+      arguments: [{ name: "id", field: "id" }]
+    )
+}
+
+type Subreddits {
+  created_at: DateTime
+  id: ID!
+  topic: String
+}
+
+type Votes {
+  created_at: DateTime
+  id: ID!
+  post_id: ID
+  upvote: Boolean
+  username: String
+}
+
+type Query {
+  getCommentsList: [Comments]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "comments"
+      configuration: "postgresql_config"
+    )
+  """
+  This query is an example of how to simply paginate your responses.
+  """
+  getPaginatedCommentsList(first: Int!, after: Int!): [Comments]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "public"."comments" limit $1 offset $2
+      """
+      configuration: "postgresql_config"
+    )
+  """
+  In this example, a single query parameter is passed. If the request to the DB will
+  return at most one value you can remove the square brackets from the result.
+  """
+  getCommentsByPost_id(post_id: ID!): [Comments]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "public"."comments" where "post_id" = $1
+      """
+      configuration: "postgresql_config"
+    )
+  """
+  In this example, two query parameters are passed. If the request to the DB will
+  return at most one value you can remove the square brackets from the result.
+  """
+  getCommentsByPost_idAndUsername(post_id: ID!, username: String!): [Comments]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "public"."comments" where "post_id" = $1 and "username" = $2
+      """
+      configuration: "postgresql_config"
+    )
+
+  getCommentsListByPostId(id: ID!): [Comments]
+    @dbquery(
+      type: "postgresql"
+
+      schema: "public"
+      query: """
+      select * from "comments" where "post_id" = $1
+      order by "created_at" desc
+      """
+      configuration: "postgresql_config"
+    )
+
+  getPostsList: [Posts]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from "posts"
+      order by "created_at" desc
+      """
+      configuration: "postgresql_config"
+    )
+
+  getPostsListByTopic(topic: String!): [Posts]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select *, "posts".id as "id" from "posts"
+      join "subreddits" on "subreddits"."id" = "posts"."subreddit_id"
+      where "subreddits"."topic" = $1
+      order by "posts"."created_at" desc
+      """
+      configuration: "postgresql_config"
+    )
+
+  getPostById(id: ID!): Posts
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from "posts" where "id" = $1
+      """
+      configuration: "postgresql_config"
+    )
+
+  getSubredditsList: [Subreddits]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "subreddits"
+      configuration: "postgresql_config"
+    )
+
+  getSubredditsListById(id: ID!): [Subreddits]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from "subreddits" where "id" = $1
+      """
+      configuration: "postgresql_config"
+    )
+
+  getSubredditsWithLimit(limit: Int!): [Subreddits]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from "subreddits" order by "created_at" desc limit $1
+      """
+      configuration: "postgresql_config"
+    )
+
+  getVotesList: [Votes]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "votes"
+      configuration: "postgresql_config"
+    )
+
+  getVotesListByPostId(id: ID!): [Votes]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from "votes" where "post_id" = $1
+      order by "created_at" desc
+      """
+      configuration: "postgresql_config"
+    )
+
+  getSubredditsListByTopic(topic: String!): [Subreddits]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      select * from subreddits where topic = $1
+      """
+      configuration: "postgresql_config"
+    )
+}
+
+type Mutation {
+  """
+  In this mutation example you can see how to do a mutation to insert data in the database.
+  """
+  insertPosts(
+    image: String!
+    body: String!
+    subreddit_id: ID!
+    title: String!
+    username: String!
+  ): Posts
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "posts"
+      dml: INSERT
+      configuration: "postgresql_config"
+    )
+
+  insertSubreddit(topic: String!): Subreddits
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "subreddits"
+      dml: INSERT
+      configuration: "postgresql_config"
+    )
+
+  insertComment(text: String!, post_id: ID!, username: String!): Comments
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "comments"
+      dml: INSERT
+      configuration: "postgresql_config"
+    )
+
+  insertVote(upvote: Boolean!, post_id: ID!, username: String!): Votes
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "votes"
+      dml: INSERT
+      configuration: "postgresql_config"
+    )
+  """
+  In this mutation example you can see how to do a mutation to delete data from the database.
+  """
+  deletePosts(
+    image: String!
+    id: ID!
+    body: String!
+    created_at: DateTime!
+    subreddit_id: ID!
+    title: String!
+    username: String!
+  ): Posts
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      table: "posts"
+      dml: DELETE
+      configuration: "postgresql_config"
+    )
+}
