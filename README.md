@@ -10,8 +10,9 @@
 
   <h3 align="center">Clone Reddit</h3>
 
-  <p align="center">
+  <p>
     A lightweight reddit clone with a small set of features just to try out some technologies
+based on this <a href="https://www.youtube.com/watch?v=O0AhmAVzOo4">video</a>.
     <br />
     <br />
     <a href="https://github.com/hlopes/clone-reddit">Explore the docs</a>
@@ -33,12 +34,14 @@
 <!-- ABOUT THE PROJECT -->
 
 ## About The Project
+<a name="about-the-project"></a>
 
 ![clone reddit](public/images/clone-reddit.jpg)
 
 This project was created as a small platform to try out some technologies such as tailwind, stepzen/graphql and NextJs.
 
 ### Built With
+<a name="built-with"></a>
 
 The following list includes the major frameworks/libraries used to create project.
 
@@ -52,6 +55,7 @@ The following list includes the major frameworks/libraries used to create projec
 <!-- ACKNOWLEDGMENTS -->
 
 ## Acknowledgments
+<a name="acknowledgments"></a>
 
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
